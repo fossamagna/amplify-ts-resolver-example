@@ -22,7 +22,7 @@ const schema = a.schema({
     .handler(
       a.handler.custom({
         dataSource: a.ref("Post"),
-        entry: build("./resolvers/increment-like.ts"),
+        entry: await build("./resolvers/increment-like.ts"),
       })
     ),
 });

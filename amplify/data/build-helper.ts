@@ -1,10 +1,10 @@
 import esbuild from "esbuild";
 import path from "node:path";
-import fs from "node:fs";
+import fs from "node:fs/promises";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
-export function build(key: string) {
+export async function build(key: string) {
   const outdir = path.join(
     __dirname,
     "..",
@@ -16,7 +16,7 @@ export function build(key: string) {
 
   const outfile = `${path.basename(key, path.extname(key))}.js`;
 
-  const result = esbuild.buildSync({
+  const result = await esbuild.build({
     bundle: true,
     write: false,
     outfile: path.join(outdir, outfile),
@@ -26,7 +26,7 @@ export function build(key: string) {
     target: "esnext",
     sourcemap: "inline",
     sourcesContent: false,
-    tsconfigRaw: fs.readFileSync(
+    tsconfigRaw: await fs.readFile(
       path.join(__dirname, "resolvers", "tsconfig.json"),
       "utf-8"
     ),
@@ -35,7 +35,7 @@ export function build(key: string) {
   if (result.errors.length) {
     throw new Error("Could not build" + key + ": " + result.errors.join("\n"));
   }
-  fs.mkdirSync(path.dirname(result.outputFiles[0].path), { recursive: true });
-  fs.writeFileSync(result.outputFiles[0].path, result.outputFiles[0].text);
+  await fs.mkdir(path.dirname(result.outputFiles[0].path), { recursive: true });
+  await fs.writeFile(result.outputFiles[0].path, result.outputFiles[0].text);
   return result.outputFiles[0].path;
 }
